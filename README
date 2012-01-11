@@ -1,0 +1,31 @@
+The design
+-------------------------
+1. attribute names and values.
+
+attribute name contains a type: discrete or CONTINUOUS(TODO).
+currently only support discrete type.
+
+each attribute name has a list of values.
+
+2. instance and instance bag.
+A instance denotes a record in the data file.
+Each instance contains a list of attribute values.
+Please note that we only store the index in each instance(not the actually string value) of the attribute values to save space.
+The actual string values are only stored in instancebag
+
+Instance bag is the container of instance. It contains a list of instance and all the attribute names in the data
+file.
+
+3. Node and Tree.
+In this implementation, we did not design different data structures for each node type such as leaf node or internal node.
+in the DTreeNode structure, if attr_name_index is not equal to -1, then it is the internal node, if label_index is not 
+equal to -1, then it is the leaf node.
+
+We use information gain to select the best split attribute for current node.
+When the Entropy of the node is 0 or we used up all the attributes along the path from root to current node, we stop growing 
+tree.
+
+4. tree pruning.(TODO)
+
+
+

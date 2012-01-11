@@ -1,0 +1,14 @@
+Sunny,Hot,High,Weak,Don't Play
+Sunny,Hot,High,Strong,Don't Play
+Overcast,Hot,High,Weak,Play
+Rain,Mild,High,Weak,Play
+Rain,Cool,Normal,Weak,Play
+Rain,Cool,Normal,Strong,Don't Play
+Overcast,Cool,Normal,Strong,Play
+Sunny,Mild,High,Weak,Don't Play
+Sunny,Cool,Normal,Weak,Play
+Rain,Mild,Normal,Weak,Play
+Sunny,Mild,Normal,Strong,Play
+Overcast,Mild,High,Strong,Play
+Overcast,Hot,Normal,Weak,Play
+Rain,Mild,High,Strong,Don't Play
