@@ -1,0 +1,5 @@
+IF outlook  = sunny && humidity  = high THEN don't play
+ = normal THEN play
+ = overcast THEN play
+ = rain && wind  = weak THEN play
+ = strong THEN don't play

@@ -236,6 +236,15 @@ class InstanceBag {
             return attr_name_vec.size();
         }
 
+        void get_label_string(int i, string& label) {
+            map<Label, int>::iterator it(label_map.begin());
+            for(; it != label_map.end(); ++it) {
+                if (it->second == i) {
+                    label.assign(it->first);
+                }
+            }
+        }
+
         double get_beta_entropy() {
             double E = 0;
             double total = inst_vec.size();
@@ -267,6 +276,7 @@ class InstanceBag {
 
         const string& get_attr_val(size_t i, size_t j) {
             assert( i>= 0 && i < attr_name_vec.size());
+            assert( j>= 0 && j < attr_name_vec[i].vals.size());
             return attr_name_vec[i].vals[j];
         }
 

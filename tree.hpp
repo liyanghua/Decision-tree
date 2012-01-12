@@ -14,6 +14,7 @@ struct DTreeNode {
     int attr_name_index;
     int label_index;
 
+
     DTreeNode() : parent(NULL), attr_name_index(-1), label_index(-1) {
         children.clear();
         cond_vec.clear();
@@ -44,8 +45,6 @@ class DTree {
         }
         ~DTree() {
 			release(root);
-			cout << "release root" << endl;
-			root->dump();
 			delete root;
 			root = NULL;
         }
@@ -59,8 +58,6 @@ class DTree {
 			    vector<DTreeNode*> & children = p->children;
 				for(size_t i=0; i<children.size(); ++i) {
 				    if (children[i] != NULL) {
-					    cout << "Release node:" << endl;
-						children[i]->dump();
 					    release(children[i]);
 						children[i] = NULL;
 					}
@@ -92,18 +89,21 @@ class DTree {
                 const vector<int>& inst_index, 
                 const map<int, int>& allowed_attr) {
             assert(inst_bag != NULL);
-
+#ifdef debug
             cout << "inst_index:" << endl;
             dump_vector(inst_index);
 
             cout << "allowed_attr:" << endl;
             dump_map(allowed_attr);
+#endif
 
             // compute the entropy at this node
             int label = -1;
             double E = compute_entropy(inst_bag, inst_index, label);
             if (E == 0) {
+#ifdef debug
                 cout << "Entropy is 0, label this node as leaf, and the label is: " << label << endl;
+#endif
                 assert(label != -1);
                 node->label_index = label;
                 node->attr_name_index = -1;
@@ -113,7 +113,6 @@ class DTree {
             if (allowed_attr.size() == 0) {
                 // we used all the attributes, but we still dest not get pure subset
                 // use the major votes 
-                cout << "Allowed attr is empty now, label this node as leaf, and the label is: " << label << endl;
                 assert(label != -1);
                 node->label_index = label;
                 node->attr_name_index = -1;
@@ -122,8 +121,6 @@ class DTree {
             }
 
             
-            cout << "Entropy:" << E << endl;
-
             const vector<AttrName> & attr_name_vec = inst_bag->get_attr_name_vec();
             // choose the best attribute name for the node, i.e., select the minimal entropy
             double min = 999; // set it to a bigger one 
@@ -134,16 +131,12 @@ class DTree {
             for (; attr_it != allowed_attr.end(); ++attr_it) {
                 int i = attr_it->first;
                 const AttrName& m = attr_name_vec[i];
-                cout << "attr name: " << m.name << endl;
                 double P_E = 0; // partial entropy
                 // for each value of the name
                 for (size_t j=0; j<m.vals.size(); ++j) {
-                    cout << "attr val: " << m.vals[j] << endl;
                     pair<int, double> p = compute_stats(inst_bag, inst_index, i, j);
                     P_E += p.second * p.first / (double)inst_index.size();
                 }
-
-                cout << "P_E:" << P_E << endl;
 
                 if (min > P_E) {
                     min = P_E;
@@ -166,7 +159,9 @@ class DTree {
             for (size_t k=0; k<m.vals.size(); k++) { // for each attr val
                 vector<int> new_inst_index;
                 modify_inst_vec(inst_bag, inst_index, new_inst_index, best_attr_name_index, k);
-                node->children.push_back(new DTreeNode());
+                DTreeNode* new_node = new DTreeNode();
+                new_node->parent = node;
+                node->children.push_back(new_node);
                 node->cond_vec.push_back(k);
                 build_tree(inst_bag, node->children[k], new_inst_index, new_allowed_attr);
             }
@@ -183,47 +178,29 @@ class DTree {
         }
 
         void modify_inst_vec(InstanceBag* inst_bag, const vector<int>& old_inst, vector<int>& new_inst, int i, int j) {
-            cout << "before modify, inst:" << endl;
-            dump_vector(old_inst);
-
             for (size_t x=0; x<old_inst.size(); ++x) {
                 Instance& inst = (*inst_bag)[old_inst[x]];
                 if (inst.contains(i, j)) {
                     new_inst.push_back(old_inst[x]);
                 }
             }
-
-            cout << "after modify, inst:" << endl;
-            dump_vector(new_inst); 
         }
 
         pair<int, double> compute_stats(InstanceBag* inst_bag, const vector<int>& inst_index, int attr_name_index, int attr_val_index) {
             map<int, int> label_counts;
-
             int total = 0;
-
-            cout << "computes stats for name index:" << attr_name_index << ", val index:" << attr_val_index << endl;
-            cout << "the inst_index" << endl;
-            dump_vector(inst_index);
-
             for (size_t i=0; i<inst_index.size(); ++i) {
                 Instance& inst = (*inst_bag)[inst_index[i]];
-                cout << "check each instance:" << inst_index[i] << endl;
-                inst.dump(inst_bag->get_attr_name_vec());
                 if (inst.contains(attr_name_index, attr_val_index)) {
                     label_counts[inst.get_label_index()] += 1;
                     total += 1;
                 }
             }
             
-            util::dump_map(label_counts);
-
             double E = entropy(label_counts, total);
-
             pair<int, double> p;
             p.first = total;
             p.second = E;
-            cout << "partial Entropy:" << E << ", total="  << total << endl;
 
             return p;
         }
@@ -235,7 +212,6 @@ class DTree {
             map<int, int>::iterator it(label_counts.begin());
             for (; it != label_counts.end(); ++it) {
                 double p = (double) it->second / (double) total;
-                cout << "-" << p << "*log2(" << p << ")" << endl;
                 E += (-p) * log2(p);
             }
 
@@ -247,20 +223,12 @@ class DTree {
             double E = 0;
             int total = inst_index.size();
 
-
             map<int, int> label_counts;
-
             for (size_t i=0; i<inst_index.size(); ++i) {
                 label_counts[(*inst_bag)[inst_index[i]].get_label_index()] += 1;
             }
-
             E = entropy(label_counts, total);
-
             major_label = get_major_votes(label_counts);
-
-            cout << "major_label=" << major_label << endl;
-            cout << "label counts:" << endl;
-            util::dump_map(label_counts);
 
             return E;
         }

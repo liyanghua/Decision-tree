@@ -15,15 +15,35 @@ int main(int argc, char* argv[]) {
 
     InstanceBag * bag = c.get_bag();
 
-    cout << "number of inst:" << bag->size() << endl;
-
+    Stats s;
     for (size_t i=0; i<bag->size(); ++i) {
         Instance& inst = (*bag)[i];
         int label = c.classify(inst);
+        int original_label = inst.get_label_index() ;
 
-        cout << "classification label=" << label << endl;
-        cout << "original label=" << inst.get_label_index() << endl;
+        // for binary classification, 0: pos, 1, neg in this example
+        if (label == 0 && original_label == 0) { // true positive
+            s.tp++;
+        }
+        if (label == 0 && original_label == 1) { // false positive
+            s.fp++;
+        }
+
+        if (label == 1 && original_label == 0) { // false negative
+            s.fn++;
+
+        }
+
+        if (label == 1 && original_label == 1) { // true negative
+            s.tn++;
+        }
     }
+
+    cout << "Acc: " << s.get_accuracy() << endl;
+    cout << "P: " << s.get_precision() << endl;
+    cout << "Recall:" << s.get_recall() << endl;
+
+    c.write_model("DTREE");
 
     return 0;
 }
