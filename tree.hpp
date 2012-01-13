@@ -40,8 +40,11 @@ struct DTreeNode {
 class DTree {
     private:
         DTreeNode* root;
+        // split strage, IG or IG-ratio
+        bool using_ig_ratio;
+
     public:
-        DTree() : root(new DTreeNode()) {
+        DTree() : root(new DTreeNode()), using_ig_ratio(false) {
         }
         ~DTree() {
 			release(root);
@@ -131,13 +134,19 @@ class DTree {
             for (; attr_it != allowed_attr.end(); ++attr_it) {
                 int i = attr_it->first;
                 const AttrName& m = attr_name_vec[i];
+                double IG_R = 0;
                 double P_E = 0; // partial entropy
                 // for each value of the name
                 for (size_t j=0; j<m.vals.size(); ++j) {
                     pair<int, double> p = compute_stats(inst_bag, inst_index, i, j);
-                    P_E += p.second * p.first / (double)inst_index.size();
+                    double prob = p.first / (double)inst_index.size();
+                    P_E += p.second * prob;
+                    IG_R += (- prob) * log2(prob);
                 }
 
+                if (using_ig_ratio) {
+                    P_E /= IG_R;
+                }
                 if (min > P_E) {
                     min = P_E;
                     best_attr_name_index = i;

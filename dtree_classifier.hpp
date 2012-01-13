@@ -2,36 +2,11 @@
 #define _DTREE_CLASSIFIER_
 
 #include "tree.hpp"
-
-struct Stats {
-    int tp; // true positive
-    int fp; // false positive
-    int tn; // true negative
-    int fn; // false negative
-
-    Stats() : tp(0), fp(0), tn(0), fn(0) {}
-
-    double get_precision() {
-        assert((tp + fp) != 0);
-        return (double) tp / (double) ( tp + fp);
-    }
-
-    double get_recall() {
-        assert((tp + fn) != 0);
-
-        return (double)tp / (double)(tp + fn);
-    }
-
-    double get_accuracy() {
-        assert((tp + fp + tn + fn) != 0);
-
-        return (double)(tp + tn) / (double)(tp + fp + tn + fn);
-    }
-};
+#include "classifier.hpp"
 
 const static char* MODEL = ".model";
 
-class DTreeClassifier {
+class DTreeClassifier: public Classifier {
     private:
         DTree* model;
         InstanceBag* bag;

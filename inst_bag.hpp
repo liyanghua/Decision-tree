@@ -43,9 +43,67 @@ namespace util {
             }
             cout << endl;
         }
+
+    template<class Type>
+        void normalized(vector<Type>& v) {
+            double sum = 0;
+
+            for (size_t i=0; i<v.size(); ++i) {
+                sum += v[i];
+            }
+
+            for (size_t i=0; i<v.size(); ++i) {
+                v[i] = (double) v[i] / sum;
+            }
+        }
 };
 
 using namespace util;
+
+struct Stats {
+    int tp; // true positive
+    int fp; // false positive
+    int tn; // true negative
+    int fn; // false negative
+
+    Stats() : tp(0), fp(0), tn(0), fn(0) {}
+
+    double get_precision() {
+        assert((tp + fp) != 0);
+        return (double) tp / (double) ( tp + fp);
+    }
+
+    double get_recall() {
+        assert((tp + fn) != 0);
+
+        return (double)tp / (double)(tp + fn);
+    }
+
+    double get_accuracy() {
+        assert((tp + fp + tn + fn) != 0);
+
+        return (double)(tp + tn) / (double)(tp + fp + tn + fn);
+    }
+
+    void inc(int original_label, int label) {
+        // for binary classification, 0: pos, 1, neg in this example
+        if (label == 0 && original_label == 0) { // true positive
+            tp++;
+        }
+        if (label == 0 && original_label == 1) { // false positive
+            fp++;
+        }
+
+        if (label == 1 && original_label == 0) { // false negative
+            fn++;
+        }
+
+        if (label == 1 && original_label == 1) { // true negative
+            tn++;
+        }
+
+    }
+};
 
 class Instance {
     private:
@@ -245,6 +303,10 @@ class InstanceBag {
             }
         }
 
+        const map<int, int>& get_label_counts() {
+            return label_counts;
+        }
+
         double get_beta_entropy() {
             double E = 0;
             double total = inst_vec.size();
@@ -280,9 +342,18 @@ class InstanceBag {
             return attr_name_vec[i].vals[j];
         }
 
-
         size_t size() {
             return inst_vec.size();
+        }
+        
+        // used in NaiveBayes Classifier
+        void get_inst_num(map<int, int>& label_counts, int name_index, int val_index) {
+            for (size_t i=0; i<inst_vec.size(); ++i) { // for each instance
+                int label_index = inst_vec[i].get_label_index();
+                if (inst_vec[i].contains(name_index, val_index)) {
+                    label_counts[label_index] += 1;
+                }
+            }
         }
 };
 
