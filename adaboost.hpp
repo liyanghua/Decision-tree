@@ -86,8 +86,9 @@ void Adaboost::update_weight(double w, int learner_index, InstanceBag* bag) {
         Instance& inst = (*bag)[i];
         int label = weak_classifier_vec[learner_index]->classify(inst);
         int old_label = inst.get_label_index();
-        
-        weight[i] *= pow(e, (-label) * w * old_label);
+	if (label != old_label) { // give more weight to mis-classification item
+	    weight[i] *= pow(e, w);
+	}
     }    
 
     util::normalized(weight);
